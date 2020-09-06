@@ -1,7 +1,7 @@
 # OPRP
 Disciplina optativa de programação paralela UDESC - CCT
 
-- Colaboradores:
+# Colaboradores:
 - Lucas Cobucci
 - Nilton Mocelin
 

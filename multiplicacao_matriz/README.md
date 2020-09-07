@@ -1,4 +1,4 @@
-#Multiplicacao CUDA com matrizes não quadradas
+# Multiplicacao CUDA com matrizes não quadradas
 - [x] Leitura das matrizes em arquivo
 - [x] Inicialização dos vetores com o valor dos arquivos
 - [x] Alterando os valores no DEVICE e trazendo para o HOST

@@ -2,6 +2,7 @@ NVCC = nvcc
 CCFLAGS=
 LDFLAGS= -lm
 TARGET= multiplicacao
+export PATH=/usr/bin/:$PATH
 
 all: $(TARGET)
 

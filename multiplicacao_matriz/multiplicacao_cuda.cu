@@ -165,10 +165,6 @@ int main(int argc, char const *argv[]) {
 
   cudaMallocHost((void **) &b, size_b);
   cudaMallocHost((void **) &c, size_c);
-
-  // a= (int *) malloc(size_a);
-  // b= (int *) malloc(size_b);
-  // c= (int *) malloc(size_c);
   printf("R4\n");
 
   printf("B1\n");
@@ -183,65 +179,76 @@ int main(int argc, char const *argv[]) {
   printf ("\t ### Matriz (b) ### \n");
   printMat(b,Lb, C);
 
-
   // Alocação de memória na GPU para os vetores (a,b e c)
   cudaMalloc ((void **) &dev_a, size_a);
   cudaMalloc ((void **) &dev_b, size_b);
   cudaMalloc ((void **) &dev_c, size_c);
 
-  // // Atribui valores iniciais aos vetores em GPU
-  printIndex<<<1, L*Ca>>>();
+  // Atribui valores iniciais aos vetores em GPU
   dirtyMem<<<1, L*Ca>>>(dev_a);
-  printIndex<<<1, C*Lb>>>();
+
   dirtyMem<<<1, C*Lb>>>(dev_b);
-  printIndex<<<1, L*C>>>();
+
   dirtyMem<<<1, C*L>>>(dev_c);
 
-  //
-  // //isso parece nao ter serventia - aparenta ser para teste
-  // //
-  // Cópia GPU para CPU
-  cudaMemcpy (a, dev_a, size_a, cudaMemcpyDeviceToHost);
-  cudaMemcpy (b, dev_b, size_b, cudaMemcpyDeviceToHost);
-  cudaMemcpy (c, dev_c, size_c, cudaMemcpyDeviceToHost);
-  //
-  // //isso parece nao ter serventia - aparenta ser para teste
+  ///////////////////////////// teste ///////////////////////////////////////
+  //verificar os indices
+  // printf("Indice A\n");
+  // printIndex<<<1, L*Ca>>>();
+  // printf("\nIndice B\n");
+  // printIndex<<<1, C*Lb>>>();
+  // printf("\nIndice C\n");
+  // printIndex<<<1, L*C>>>();
+  ////Cópia GPU para CPU
+  // cudaMemcpy (a, dev_a, size_a, cudaMemcpyDeviceToHost);
+  // cudaMemcpy (b, dev_b, size_b, cudaMemcpyDeviceToHost);
+  // cudaMemcpy (c, dev_c, size_c, cudaMemcpyDeviceToHost);
+  ////Impressão na tela dos valores dos vetores
+  // printf ("\t ### Valores Inicializados na GPU ###\n");
+  // printf ("\t ### Matriz (a) ### \n");
+  // printMat(a, L, Ca);
+  // printf ("\t ### Matriz (b) ### \n");
+  // printMat(b,Lb, C);
+  // printf ("\t ### Matriz (c) ### \n");
+  // printMat(c, L, C);
+  ///////////////////////////// teste ///////////////////////////////////////
 
-  // Impressão na tela dos valores dos vetores
-  printf ("\t ### Valores Inicializados na GPU ###\n");
+
+  //Cópia dos vetores gerados em CPU p/ memória da GPU
+  //cudaMemcpy(destino, origem, size, direcao)
+  cudaMemcpy (dev_a, a, size_a, cudaMemcpyHostToDevice);
+  cudaMemcpy (dev_b, b, size_b, cudaMemcpyHostToDevice);
+
+  int L_max = L, C_max = C;
+  if(Lb > L){
+    L_max = Lb;
+  }
+  if(Ca > C){
+    C_max = Ca;
+  }
+
+  //Número de blocos e threads p/ dimensões (x,y)
+  dim3 dimBlock (1, 1);
+  dim3 dimThreads(L_max, C_max);
+
+  // Imprime as posições acessadas pelo dimBlock e dimThreads
+  printIndex<<< dimBlock, dimThreads>>>();
+
+  // // Execução do kernel matMult em GPU
+  matMult<<< dimBlock, dimThreads>>>(dev_a, dev_b, dev_c);
+  cudaDeviceSynchronize();
+  //
+  // Cópia do vetor (c) da GPU (Memória Global) para CPU
+  cudaMemcpy (c, dev_c, size_c, cudaMemcpyDeviceToHost);
+
+  //Impressão na tela dos valores dos vetores
+  printf ("\t ### Valores após processamento em GPU ###\n");
   printf ("\t ### Matriz (a) ### \n");
   printMat(a, L, Ca);
   printf ("\t ### Matriz (b) ### \n");
   printMat(b,Lb, C);
-  // printf ("\t ### Matriz (c) ### \n");
-  // printMat(c);
-
-  // // Cópia dos vetores gerados em CPU p/ memória da GPU
-  // cudaMemcpy (dev_a, a, size, cudaMemcpyHostToDevice);
-  // cudaMemcpy (dev_b, b, size, cudaMemcpyHostToDevice);
-  //
-  // // Número de blocos e threads p/ dimensões (x,y)
-  // dim3 dimBlock (1, 1);
-  // dim3 dimThreads(N, N);
-  //
-  // // Imprime as posições acessadas pelo dimBlock e dimThreads
-  // printIndex<<< dimBlock, dimThreads>>>();
-  //
-  // // Execução do kernel matMult em GPU
-  // matMult<<< dimBlock, dimThreads>>>(dev_a, dev_b, dev_c);
-  // cudaDeviceSynchronize();
-  //
-  // // Cópia do vetor (c) da GPU (Memória Global) para CPU
-  // cudaMemcpy (c, dev_c, size, cudaMemcpyDeviceToHost);
-  //
-  // // Impressão na tela dos valores dos vetores
-  // printf ("\t ### Valores após processamento em GPU ###\n");
-  // printf ("\t ### Matriz (a) ### \n");
-  // printMat(a);
-  // printf ("\t ### Matriz (b) ### \n");
-  // printMat(b);
-  // printf ("\t ### Matriz (c) ### \n");
-  // printMat(c);
+  printf ("\t ### Matriz (c) ### \n");
+  printMat(c, L, C);
 
   // Libera a Memória Global (GPU)
   cudaFree(dev_a);

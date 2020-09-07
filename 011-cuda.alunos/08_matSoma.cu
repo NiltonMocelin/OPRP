@@ -50,8 +50,8 @@ __host__ void initvet(int *host_a, int *host_b) {
 __host__ void printvetores (int *a, int *b, int *c) {
   printf("\t [l,c] \t A\t B\t C\t \n");
   for (int i=0; i < N; i++) {
-    for (int j=0; j < N; j++) { 
-      // if (((i % 10) == 0) && ((j%10) == 0)) 
+    for (int j=0; j < N; j++) {
+      // if (((i % 10) == 0) && ((j%10) == 0))
       printf("\t [%d,%d] \t %d\t %d\t %d\n", i, j, a[i*N+j], b[i*N+j], c[i*N+j]);
     }
   }
@@ -70,7 +70,7 @@ int main(int argc, char const *argv[]) {
   cudaMallocHost((void **) &a, size);
   cudaMallocHost((void **) &b, size);
   cudaMallocHost((void **) &c, size);
-  
+
   // Inicialização dos vetores
   initvet(a,b);
 
@@ -84,8 +84,8 @@ int main(int argc, char const *argv[]) {
   cudaMemcpy (dev_b, b, size, cudaMemcpyHostToDevice);
 
   // Número de linhas/colunas por bloco
-  dim3 dimGrid ((int) sqrt(N), (int) sqrt(N)); 
-  dim3 dimBlock((int) sqrt(N), (int) sqrt(N)); 
+  dim3 dimGrid ((int) sqrt(N), (int) sqrt(N));
+  dim3 dimBlock((int) sqrt(N), (int) sqrt(N));
 
   // GPU: Processamento do kernel matAdd
   //      Uso dos índices como matriz
@@ -102,7 +102,7 @@ int main(int argc, char const *argv[]) {
   printf ("\t ##### #####       ##### ##### \n");
 
 
-  // GPU: Processamento do kernel vecAdd 
+  // GPU: Processamento do kernel vecAdd
   //      Soma c/ índices formato de vetor
   vecAdd<<<N, N>>>(dev_a, dev_b, dev_c);
 

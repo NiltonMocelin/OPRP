@@ -14,25 +14,21 @@
 #define N 4
 #define T 1024 // numero max de threads por bloco
 
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
-{
-   if (code != cudaSuccess)
-   {
-      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-      if (abort) exit(code);
-   }
-}
-
 // GPU: Multiplicação das matrizes (a) e (b), resultado em (c)
-__global__ void matMult (int *da, int *db, int *dc) {
+__global__ void matMult (int *da, int *db, int *dc, int *C_dev) {
     // TODO: Alunos
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    int ajuste =0;//teria de ajustar
+    int ajuste =0, pos =j;//teria de ajustar
 
-    dc[j] += da[i+ajuste] * db[i*(N-ajuste)+j]; //modificar esse N !!!
+    while(j>=*C_dev){
+      ajuste+=blockDim.y/(*C_dev);
+      j-=*C_dev;
+    }
+
+    printf("dc[%d](%d) += da[%d](%d) * db[%d](%d) => (%d) | C:%d | ajuste: %d\n", pos, dc[pos], i+ajuste, da[i+ajuste], i*(*C_dev)+j, db[i*(*C_dev)+j], da[i+ajuste] * db[i*(*C_dev)+j], *C_dev, ajuste);
+    dc[pos] += da[i+ajuste] * db[i*(*C_dev)+j]; //modificar esse N !!!
 
 }
 
@@ -170,8 +166,18 @@ int main(int argc, char const *argv[]) {
      printf("GPUassert: %s\n", cudaGetErrorString(error_c));
   }
 
-  cudaMallocHost((void **) &b, size_b);
-  cudaMallocHost((void **) &c, size_c);
+  error_c=cudaMallocHost((void **) &b, size_b);
+  if(error_c != cudaSuccess)
+  {
+     printf("GPUassert: %s\n", cudaGetErrorString(error_c));
+  }
+
+  error_c=cudaMallocHost((void **) &c, size_c);
+  if(error_c != cudaSuccess)
+  {
+     printf("GPUassert: %s\n", cudaGetErrorString(error_c));
+  }
+
   printf("R4\n");
 
   printf("B1\n");
@@ -193,9 +199,7 @@ int main(int argc, char const *argv[]) {
 
   // Atribui valores iniciais aos vetores em GPU
   dirtyMem<<<1, L*Ca>>>(dev_a);
-
   dirtyMem<<<1, C*Lb>>>(dev_b);
-
   dirtyMem<<<1, C*L>>>(dev_c);
 
   ///////////////////////////// teste ///////////////////////////////////////
@@ -226,13 +230,13 @@ int main(int argc, char const *argv[]) {
   cudaMemcpy (dev_a, a, size_a, cudaMemcpyHostToDevice);
   cudaMemcpy (dev_b, b, size_b, cudaMemcpyHostToDevice);
 
-  int L_max = L, C_max = C;
-  if(Lb > L){
-    L_max = Lb;
-  }
-  if(Ca > C){
-    C_max = Ca;
-  }
+  // int L_max = L, C_max = C;
+  // if(Lb > L){
+  //   L_max = Lb;
+  // }
+  // if(Ca > C){
+  //   C_max = Ca;
+  // }
 
   ////////////////////////////////// Arrumar aqui /////////////////////////////////////////
   //alocar no device o tamanho das matrizes
@@ -241,16 +245,18 @@ int main(int argc, char const *argv[]) {
   //Número de blocos e threads p/ dimensões (x,y)
   dim3 dimBlock (1, 1); //dimensao de um bloco (1,1) = 65k x 65k (threads)
   dim3 dimThreads(L, Lb *C);//assim podemos multiplicar ate 65k x 65k (pelo q entendi)
+  int *C_dev;
+  cudaMalloc((void **) &C_dev, sizeof(int));
+  cudaMemcpy (C_dev, &C, sizeof(int), cudaMemcpyHostToDevice);
 
   // Imprime as posições acessadas pelo dimBlock e dimThreads
   printIndex<<< dimBlock, dimThreads>>>();
 
   // // Execução do kernel matMult em GPU
-  matMult<<< dimBlock, dimThreads>>>(dev_a, dev_b, dev_c);
+  matMult<<< dimBlock, dimThreads>>>(dev_a, dev_b, dev_c, C_dev);
   cudaDeviceSynchronize();
 
   ///////////////////////////////////////////////////////////////////////////////////////
-
   // Cópia do vetor (c) da GPU (Memória Global) para CPU
   cudaMemcpy (c, dev_c, size_c, cudaMemcpyDeviceToHost);
 

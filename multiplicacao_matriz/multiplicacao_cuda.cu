@@ -27,6 +27,13 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 // GPU: Multiplicação das matrizes (a) e (b), resultado em (c)
 __global__ void matMult (int *da, int *db, int *dc) {
     // TODO: Alunos
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+    int ajuste =0;//teria de ajustar
+
+    dc[j] += da[i+ajuste] * db[i*(N-ajuste)+j]; //modificar esse N !!!
+
 }
 
 // GPU: Imprime índices na matriz
@@ -42,7 +49,7 @@ __global__ void printIndex (void) {
 __global__ void dirtyMem (int *da) {
    int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-   da[i] = -1;
+   da[i] = 0;
 }
 
 // CPU: Inicializa os vetores (a) e (b)
@@ -227,9 +234,13 @@ int main(int argc, char const *argv[]) {
     C_max = Ca;
   }
 
+  ////////////////////////////////// Arrumar aqui /////////////////////////////////////////
+  //alocar no device o tamanho das matrizes
+  // int *linA_dev=cudaMalloc((void **) &linA_dev, sizeof(int)), *colA_dev=cudaMalloc((void **) &colA_dev, sizeof(int)), *linB_dev=cudaMalloc((void **) &linB_dev, sizeof(int)), *colB_dev=cudaMalloc((void **) &colB_dev, sizeof(int));
+
   //Número de blocos e threads p/ dimensões (x,y)
-  dim3 dimBlock (1, 1);
-  dim3 dimThreads(L_max, C_max);
+  dim3 dimBlock (1, 1); //dimensao de um bloco (1,1) = 65k x 65k (threads)
+  dim3 dimThreads(L, Lb *C);//assim podemos multiplicar ate 65k x 65k (pelo q entendi)
 
   // Imprime as posições acessadas pelo dimBlock e dimThreads
   printIndex<<< dimBlock, dimThreads>>>();
@@ -237,7 +248,9 @@ int main(int argc, char const *argv[]) {
   // // Execução do kernel matMult em GPU
   matMult<<< dimBlock, dimThreads>>>(dev_a, dev_b, dev_c);
   cudaDeviceSynchronize();
-  //
+
+  ///////////////////////////////////////////////////////////////////////////////////////
+
   // Cópia do vetor (c) da GPU (Memória Global) para CPU
   cudaMemcpy (c, dev_c, size_c, cudaMemcpyDeviceToHost);
 

@@ -12,7 +12,7 @@
 
 //isso tem q tirar
 #define N 4
-#define T 1024 // numero max de threads por bloco
+#define T 2 // numero max de threads por bloco
 
 // GPU: Multiplicação das matrizes (a) e (b), resultado em (c)
 __global__ void matMult (int *da, int *db, int *dc, int *C_dev) {
@@ -20,15 +20,20 @@ __global__ void matMult (int *da, int *db, int *dc, int *C_dev) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    int soma =0;
+//int i=threadIdx.x;
+//int j=threadIdx.y;
 
-    for(int ii=0; ii< *C_dev ; ii++){
+    if(i<blockDim.x && j<blockDim.y){
+// printf("i:%d j:%d | bcDim.x:%d  bkDim.y:%d | blockId.x:%d bkId.y:%d\n", i, j,blockDim.x,blockDim.y,blockIdx.x,blockIdx.y );
+	int soma=0;
+	for(int ii=0; ii< *C_dev ; ii++){
 
-      // printf("[%d]= da: %d db:%d\n",i*blockDim.y+j, i*(*C_dev)+ii, ii*(blockDim.y) + j);
-      soma += da[i*(*C_dev)+ii] * db[ii*blockDim.y+j];
+      		printf("[%d]= da: %d db:%d\n",i*blockDim.y+j, i*(*C_dev)+ii, ii*(blockDim.y) + j + blockIdx.y);
+	      	soma += da[i*(*C_dev)+ii] * db[ii*blockDim.y+j];
+    	}
+
+	dc[i*blockDim.y+j] = soma;
     }
-
-    dc[i*blockDim.y+j] = soma;
 
 
 }
@@ -37,6 +42,9 @@ __global__ void matMult (int *da, int *db, int *dc, int *C_dev) {
 __global__ void printIndex (void) {
    int i = blockIdx.x * blockDim.x + threadIdx.x;
    int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+//	int i= threadIdx.x;
+//	int j=threadIdx.y;
 
    printf ("[%d][%d]=%d\t(x)\t%d\t%d\t%d\t(y)\t%d\t%d\t%d\n",i,j,(i*N+j), threadIdx.x, blockIdx.x, blockDim.x,threadIdx.y, blockIdx.y, blockDim.y);
 }
@@ -261,6 +269,9 @@ int main(int argc, char const *argv[]) {
   initvet(a, mat_a);
   initvet(b, mat_b);
 
+//  mcomparar(&mat_a, a, Ca);
+//  mcomparar(&mat_b, b, C);
+
   // Impressão na tela dos valores dos vetores
   printf ("\t ### Valores Lidos de arquivo na CPU ###\n");
   printf ("\t ### Matriz (a) ### \n");
@@ -273,10 +284,50 @@ int main(int argc, char const *argv[]) {
   cudaMalloc ((void **) &dev_b, size_b);
   cudaMalloc ((void **) &dev_c, size_c);
 
+  ////////////////////////////////// Arrumar aqui /////////////////////////////////////////
+  //Número de blocos e threads p/ dimensões (x,y)
+  dim3 dimBlock (1, 1); //dimensao de um bloco (1,1) = 1024 (threads)
+  dim3 dimThreads(L, Ca);//assim podemos multiplicar ate L*C=1024 (pelo q entendi)
+
+  if(L*Ca > T){ // Dimensoes ultrapassam a quantidade de threads de um so bloco
+        dimThreads.x=T;
+        dimThreads.y=T;
+
+        dimBlock.x= (int) ceil(double(L)/double(T));
+        dimBlock.y= (int) ceil(double(Ca)/double(T));
+  }
+
   // Atribui valores iniciais aos vetores em GPU
-  dirtyMem<<<1, L*Ca>>>(dev_a);
-  dirtyMem<<<1, C*Lb>>>(dev_b);
-  dirtyMem<<<1, C*L>>>(dev_c);
+  dirtyMem<<<dimBlock, dimThreads>>>(dev_a);
+////////////////////////////////////////////////////////////
+	 dimThreads.x=Lb;
+         dimThreads.y=C;
+         dimBlock.x= 1;
+         dimBlock.y= 1;
+   if(Lb*C > T){ // Dimensoes ultrapassam a quantidade de threads de um so bloco
+        dimThreads.x=T;
+        dimThreads.y=T;
+
+        dimBlock.x= (int) ceil(double(Lb)/double(T));
+        dimBlock.y= (int) ceil(double(C)/double(T));
+  }
+
+  dirtyMem<<<dimBlock, dimThreads>>>(dev_b);
+/////////////////////////////////////////////////////////
+	  dimThreads.x=L;
+          dimThreads.y=C;
+          dimBlock.x= 1;
+          dimBlock.y= 1;
+
+   if(L*C > T){ // Dimensoes ultrapassam a quantidade de threads de um so bloco
+        dimThreads.x=T;
+        dimThreads.y=T;
+
+        dimBlock.x= (int) ceil(double(L)/double(T));
+        dimBlock.y= (int) ceil(double(C)/double(T));
+  }
+
+  dirtyMem<<<dimBlock, dimThreads>>>(dev_c);
 
   //Cópia dos vetores gerados em CPU p/ memória da GPU
   //cudaMemcpy(destino, origem, size, direcao)
@@ -285,15 +336,26 @@ int main(int argc, char const *argv[]) {
 
   ////////////////////////////////// Arrumar aqui /////////////////////////////////////////
   //Número de blocos e threads p/ dimensões (x,y)
-  dim3 dimBlock (1, 1); //dimensao de um bloco (1,1) = 1024 (threads)
-  dim3 dimThreads(L, C);//assim podemos multiplicar ate L*C=1024 (pelo q entendi)
+    dimThreads.x=L;
+    dimThreads.y=C;
+    dimBlock.x= 1;
+    dimBlock.y= 1;
+
+  if(L*C > T){ // Dimensoes ultrapassam a quantidade de threads de um so bloco
+	dimThreads.x=T;
+	dimThreads.y=T;
+
+	dimBlock.x= (int) ceil(double(L)/double(T));
+	dimBlock.y= (int) ceil(double(C)/double(T));
+  }
+
   int *C_dev;
   cudaMalloc((void **) &C_dev, sizeof(int));
   cudaMemcpy (C_dev, &Ca, sizeof(int), cudaMemcpyHostToDevice);
 
   // Imprime as posições acessadas pelo dimBlock e dimThreads
-  // printIndex<<< dimBlock, dimThreads>>>();
-
+  printIndex<<< dimBlock, dimThreads>>>();
+   
   ///////////////////////////////////////////////////////////////////////////////////////
   // Execução do kernel matMult em GPU
   printf("Multiplicacao CUDA\n");

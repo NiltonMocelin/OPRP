@@ -285,8 +285,15 @@ int main(int argc, char const *argv[]) {
 
   ////////////////////////////////// Arrumar aqui /////////////////////////////////////////
   //Número de blocos e threads p/ dimensões (x,y)
+
   dim3 dimBlock (1, 1); //dimensao de um bloco (1,1) = 1024 (threads)
   dim3 dimThreads(L, C);//assim podemos multiplicar ate L*C=1024 (pelo q entendi)
+      if (L*C > 512){
+          dimThreads.x = 512;
+          dimThreads.y = 512;
+          dimBlock.x = ceil(double(L)/double(dimThreads.x));
+          dimBlock.y = ceil(double(C)/double(dimThreads.y));
+      }
   int *C_dev;
   cudaMalloc((void **) &C_dev, sizeof(int));
   cudaMemcpy (C_dev, &Ca, sizeof(int), cudaMemcpyHostToDevice);

@@ -24,7 +24,7 @@ __global__ void matMult (int *da, int *db, int *dc, int *C_dev) {
 
     for(int ii=0; ii< *C_dev ; ii++){
 
-      printf("[%d]= da: %d db:%d\n",i*blockDim.y+j, i*(*C_dev)+ii, ii*(blockDim.y) + j);
+      // printf("[%d]= da: %d db:%d\n",i*blockDim.y+j, i*(*C_dev)+ii, ii*(blockDim.y) + j);
       soma += da[i*(*C_dev)+ii] * db[ii*blockDim.y+j];
     }
 
@@ -56,7 +56,7 @@ __host__ void initvet(int *host_a, mymatriz mat_a) {
   //iniciar host_a
   for (int i=0; i < lin_a; i++) {
     for (int j=0; j < col_a; j++) {
-      printf("host[%d] = %d\n", i*col_a+j, mat_a.matriz[i][j]);
+      // printf("host[%d] = %d\n", i*col_a+j, mat_a.matriz[i][j]);
      host_a[i*col_a+j] = mat_a.matriz[i][j];
     }
   }
@@ -66,18 +66,96 @@ __host__ void initvet(int *host_a, mymatriz mat_a) {
 // CPU: Imprime matriz
 __host__ void printMat (int *mat, int lin, int col){
 
-	for (int j =0; j < lin; j++)
+	for (int j =0; j < lin && j<15; j++)
 	printf("\t(%d)", j);
 	printf("\n");
-	for (int i=0; i < lin; i++) {
+	for (int i=0; i < lin && i<15; i++) {
 		printf("(%d)", i);
-		for (int j=0; j < col; j++){
+		for (int j=0; j < col && j<15; j++){
 			printf("\t%d", mat[i*col+j]);
 		}
 		printf("\n");
 	}
 }
 
+__host__ mymatriz *mmultiplicar (mymatriz *mat_a, mymatriz *mat_b) {
+	//refazer com as 8 permutacoes, para fim de comparacao de desempenho (tempo de execucao)
+	//6 permutacoes + 2 tipos com transposta AxBt e AtxB (com dois fors multiplicando linha por linha== ou coluna por coluna)
+	mymatriz *mat_c = NULL;
+
+	if (mat_a->col != mat_b->lin){
+		printf ("Erro: Matrizes incompatíveis!\n");
+		exit(1);
+	}
+
+	mat_c = (mymatriz *) malloc (sizeof(mymatriz));
+
+	mat_c->lin = mat_a->lin;
+	mat_c->col = mat_b->col;
+
+	if (malocar(mat_c)) {	printf ("ERROR: Out of memory\n"); }
+
+		//a(linhas) x b(colunas)
+		printf("Multiplicando com ijk\n" );
+		for (int i=0; i <mat_a->lin; i++){
+			for (int j=0; j <mat_b->col; j++){
+				mat_c->matriz[i][j]=0;
+				for (int k=0; k < mat_b->lin; k++){
+					mat_c->matriz[i][j] += mat_a->matriz[i][k]*mat_b->matriz[k][j];
+				}
+			}
+		}
+
+    return mat_c;
+}
+
+__host__ int mcomparar (mymatriz *mat_a, int *vet_c, int col){
+	for (int j =0; j < mat_a->col; j++)
+	for (int i=0; i < mat_a->lin; i++) {
+		for (int j=0; j < mat_a->col; j++){
+			if (mat_a->matriz[i][j] != vet_c[i*col+j]) {
+				printf("O elemento [%d,%d] é diferente nas matrizes analisadas!", i,j);
+				return 1;
+			}
+		}
+	}
+	printf("\tVERIFICADO: Matrizes identicas\n");
+	return 0;
+}
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+__host__ int mimprimir (mymatriz *matriz){
+	int linha, coluna;
+	linha = matriz->lin;
+	coluna = matriz->col;
+
+	if (linha > 15) {
+		linha = 15;
+	}
+
+	if (coluna > 15) {
+		coluna = 15;
+	}
+
+	for (int j =0; j < coluna; j++)
+	printf("\t(%d)", j);
+	printf("\n");
+	for (int i=0; i < linha; i++) {
+		printf("(%d)", i);
+		for (int j=0; j < coluna; j++){
+			printf("\t%d", matriz->matriz[i][j]);
+		}
+		printf("\n");
+	}
+
+	printf("\n \
+	// %%%%%%%%%%%% %%%%%%%%%%%% %%%%%%%%%%%% %%%%%%%%%%%% %%%%%%%%%%%% %%%%%%%%%%%% %%%%%%%%%%%% %%%%%%%%%%%%\n \
+	// 	WARNING: Impressão truncada em 15x15! \n \
+	// 	WARNING: Último elemento matriz[%d][%d] = %d \n \
+	// %%%%%%%%%%%% %%%%%%%%%%%% %%%%%%%%%%%% %%%%%%%%%%%% %%%%%%%%%%%% %%%%%%%%%%%% %%%%%%%%%%%% %%%%%%%%%%%%\n", \
+	matriz->lin-1, matriz->col-1, matriz->matriz[matriz->lin-1][matriz->col-1]);
+	return 0;
+}
 
 // CPU: função principal
 int main(int argc, char const *argv[]) {
@@ -145,21 +223,22 @@ int main(int argc, char const *argv[]) {
     exit(1);
   }
 
+  //multiplicando e tomando o tempo
+  printf("Multiplicacao sequencial\n");
+  double tempo_s=wtime();
+  mymatriz *mult_sequencial = mmultiplicar(&mat_a, &mat_b);
+  tempo_s = wtime()-tempo_s;
+
   int *a, *b, *c; //matrizes (vetores) em host
   int *dev_a, *dev_b, *dev_c;//matrizes (vetores) em device
   int size_a, size_b, size_c;
 
-  printf("R1\n");
   // Alocação de matriz quadrada
   size_a = L * Ca * sizeof(int);
   size_b = Lb * C * sizeof(int);
   size_c = L * C * sizeof(int);
-  printf("R2\n");
-
-  printf("R3\n");
 
   cudaError_t error_c;
-
   // // Alocação de memória no host
   error_c = cudaMallocHost((void **) &a, size_a);
   if(error_c != cudaSuccess)
@@ -179,12 +258,8 @@ int main(int argc, char const *argv[]) {
      printf("GPUassert: %s\n", cudaGetErrorString(error_c));
   }
 
-  printf("R4\n");
-
-  printf("B1\n");
   initvet(a, mat_a);
   initvet(b, mat_b);
-  printf("B2\n");
 
   // Impressão na tela dos valores dos vetores
   printf ("\t ### Valores Lidos de arquivo na CPU ###\n");
@@ -203,46 +278,12 @@ int main(int argc, char const *argv[]) {
   dirtyMem<<<1, C*Lb>>>(dev_b);
   dirtyMem<<<1, C*L>>>(dev_c);
 
-  ///////////////////////////// teste ///////////////////////////////////////
-  //verificar os indices
-  // printf("Indice A\n");
-  // printIndex<<<1, L*Ca>>>();
-  // printf("\nIndice B\n");
-  // printIndex<<<1, C*Lb>>>();
-  // printf("\nIndice C\n");
-  // printIndex<<<1, L*C>>>();
-  ////Cópia GPU para CPU
-  // cudaMemcpy (a, dev_a, size_a, cudaMemcpyDeviceToHost);
-  // cudaMemcpy (b, dev_b, size_b, cudaMemcpyDeviceToHost);
-  // cudaMemcpy (c, dev_c, size_c, cudaMemcpyDeviceToHost);
-  ////Impressão na tela dos valores dos vetores
-  // printf ("\t ### Valores Inicializados na GPU ###\n");
-  // printf ("\t ### Matriz (a) ### \n");
-  // printMat(a, L, Ca);
-  // printf ("\t ### Matriz (b) ### \n");
-  // printMat(b,Lb, C);
-  // printf ("\t ### Matriz (c) ### \n");
-  // printMat(c, L, C);
-  ///////////////////////////// teste ///////////////////////////////////////
-
-
   //Cópia dos vetores gerados em CPU p/ memória da GPU
   //cudaMemcpy(destino, origem, size, direcao)
   cudaMemcpy (dev_a, a, size_a, cudaMemcpyHostToDevice);
   cudaMemcpy (dev_b, b, size_b, cudaMemcpyHostToDevice);
 
-  // int L_max = L, C_max = C;
-  // if(Lb > L){
-  //   L_max = Lb;
-  // }
-  // if(Ca > C){
-  //   C_max = Ca;
-  // }
-
   ////////////////////////////////// Arrumar aqui /////////////////////////////////////////
-  //alocar no device o tamanho das matrizes
-  // int *linA_dev=cudaMalloc((void **) &linA_dev, sizeof(int)), *colA_dev=cudaMalloc((void **) &colA_dev, sizeof(int)), *linB_dev=cudaMalloc((void **) &linB_dev, sizeof(int)), *colB_dev=cudaMalloc((void **) &colB_dev, sizeof(int));
-
   //Número de blocos e threads p/ dimensões (x,y)
   dim3 dimBlock (1, 1); //dimensao de um bloco (1,1) = 65k x 65k (threads)
   dim3 dimThreads(L, C);//assim podemos multiplicar ate 65k x 65k (pelo q entendi)
@@ -251,34 +292,39 @@ int main(int argc, char const *argv[]) {
   cudaMemcpy (C_dev, &Ca, sizeof(int), cudaMemcpyHostToDevice);
 
   // Imprime as posições acessadas pelo dimBlock e dimThreads
-  printIndex<<< dimBlock, dimThreads>>>();
-
-  // // Execução do kernel matMult em GPU
-  matMult<<< dimBlock, dimThreads>>>(dev_a, dev_b, dev_c, C_dev);
-  cudaDeviceSynchronize();
+  // printIndex<<< dimBlock, dimThreads>>>();
 
   ///////////////////////////////////////////////////////////////////////////////////////
+  // Execução do kernel matMult em GPU
+  printf("Multiplicacao CUDA\n");
+  double tempo_c = wtime();
+  matMult<<< dimBlock, dimThreads>>>(dev_a, dev_b, dev_c, C_dev);
+  cudaDeviceSynchronize();
   // Cópia do vetor (c) da GPU (Memória Global) para CPU
   cudaMemcpy (c, dev_c, size_c, cudaMemcpyDeviceToHost);
+  tempo_c = wtime()- tempo_c;
+  ///////////////////////////////////////////////////////////////////////////////////////
 
-  //Impressão na tela dos valores dos vetores
-  printf ("\t ### Valores após processamento em GPU ###\n");
-  printf ("\t ### Matriz (a) ### \n");
-  printMat(a, L, Ca);
-  printf ("\t ### Matriz (b) ### \n");
-  printMat(b,Lb, C);
-  printf ("\t ### Matriz (c) ### \n");
+  printf ("\t ### [CUDA] Matriz (c) ### \n");
   printMat(c, L, C);
+
+  printf("\n\t ### [sequencial] Matriz ###\n");
+  mimprimir(mult_sequencial);
+
+  printf("Comparando as matrizes:\n");
+  mcomparar(mult_sequencial, c, C);
+  printf("Tempo de execucao sequencial: %.3f\n", tempo_s);
+  printf("Tempo de execucao CUDA: %.3f\n", tempo_c);
 
   // Libera a Memória Global (GPU)
   cudaFree(dev_a);
   cudaFree(dev_b);
   cudaFree(dev_c);
-  printf("A1\n");
+
   // Libera a Memória Global (CPU)
   cudaFreeHost(a);
   cudaFreeHost(b);
   cudaFreeHost(c);
-  printf("A2\n");
+
   return 0;
 }

@@ -20,15 +20,16 @@ __global__ void matMult (int *da, int *db, int *dc, int *C_dev) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    int ajuste =0, pos =j;//teria de ajustar
+    int soma =0;
 
-    while(j>=*C_dev){
-      ajuste+=blockDim.y/(*C_dev);
-      j-=*C_dev;
+    for(int ii=0; ii< *C_dev ; ii++){
+
+      printf("[%d]= da: %d db:%d\n",i*blockDim.y+j, i*(*C_dev)+ii, ii*(blockDim.y) + j);
+      soma += da[i*(*C_dev)+ii] * db[ii*blockDim.y+j];
     }
 
-    printf("dc[%d](%d) += da[%d](%d) * db[%d](%d) => (%d) | C:%d | ajuste: %d\n", pos, dc[pos], i+ajuste, da[i+ajuste], i*(*C_dev)+j, db[i*(*C_dev)+j], da[i+ajuste] * db[i*(*C_dev)+j], *C_dev, ajuste);
-    dc[pos] += da[i+ajuste] * db[i*(*C_dev)+j]; //modificar esse N !!!
+    dc[i*blockDim.y+j] = soma;
+
 
 }
 
@@ -244,10 +245,10 @@ int main(int argc, char const *argv[]) {
 
   //Número de blocos e threads p/ dimensões (x,y)
   dim3 dimBlock (1, 1); //dimensao de um bloco (1,1) = 65k x 65k (threads)
-  dim3 dimThreads(L, Lb *C);//assim podemos multiplicar ate 65k x 65k (pelo q entendi)
+  dim3 dimThreads(L, C);//assim podemos multiplicar ate 65k x 65k (pelo q entendi)
   int *C_dev;
   cudaMalloc((void **) &C_dev, sizeof(int));
-  cudaMemcpy (C_dev, &C, sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy (C_dev, &Ca, sizeof(int), cudaMemcpyHostToDevice);
 
   // Imprime as posições acessadas pelo dimBlock e dimThreads
   printIndex<<< dimBlock, dimThreads>>>();

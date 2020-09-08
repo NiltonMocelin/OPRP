@@ -5,4 +5,6 @@
 - [x] Modelar a multiplicação
 - [x] Entender como utilizar os blocos e threads
 - [x] Entender como utilizar os indices (pois as matrizes não são quadradas)
-- [] Corrigir: Multiplicacao ocorre, mas não soma na celula (problema de concorrencia)
+- [x] Corrigir: Multiplicacao ocorre, mas não soma na celula (problema de concorrencia)
+- [ ] Implementar multiplicacao serial
+- [ ] Marcar tempo e comparar com a versao serial

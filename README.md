@@ -4,11 +4,11 @@ Disciplina optativa de programação paralela UDESC - CCT
 Obs: sempre deve copiar para a maquina física para utilizar (a menos que vc tenha uma gpu nvidia e o compilador nvcc instalado)
 
 # TODO
-- O problema das multiplicacoes esta em que: um bloco possui 1024 threads
-Logo 30x30 =900 (ocupa 900 threads)
-Portanto, utilizando mais blocos, muda o modo de multiplicacao.
-- [x] Arrumar a multiplicacao com mais de um bloco
-- [ ] NAo funciona quando a primeira matriz tem mais linhas q colunas + Para os outros casos (testados) funciona
+Versao atual v3:
+[CORRIGIDO] Aparentemente o problema estava que nos limitavamos o indice "i" para o tamanho da matriz A em colunas.
+Entretanto, nos geramos uma thread para cada multiplicacao de linha com coluna.
+Por isso, o limite de "i" deve ser a qtd de linhas, pois assim teremos os indices das linhas para fazer as multiplicacaoes
+
 
 # Colaboradores:
 - Lucas Cobucci

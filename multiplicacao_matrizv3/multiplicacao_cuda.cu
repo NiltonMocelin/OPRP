@@ -13,16 +13,16 @@
 #define T 1024 // numero max de threads por bloco
 
 // GPU: Multiplicação das matrizes (a) e (b), resultado em (c)
-__global__ void matMult (int *da, int *db, int *dc, int *C_dev, int *Cb_dev) {
+__global__ void matMult (int *da, int *db, int *dc, int *C_dev, int *Cb_dev, int *La_dev) {
     // TODO: Alunos
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if(i<*Cb_dev && j<*Cb_dev){
+    if(i<*La_dev && j<*Cb_dev){
 	int soma=0;
 
 	for(int ii=0; ii< *C_dev ; ii++){
-
+//	printf("i:%d | j:%d| dc[%d]+= da[%d] * db[%d]\n",i,j, i*(*Cb_dev)+j, i*(*C_dev)+ii, ii*(*Cb_dev)+j);
 	      	soma += da[i*(*C_dev)+ii] * db[ii*(*Cb_dev)+j];
     	}
 	
@@ -336,17 +336,19 @@ int main(int argc, char const *argv[]) {
 	dimBlock.y= (int) ceil(double(C)/sqrt(T));//sqrt(1024) pois 32*32=1024 e precisamos L*C < 1024
   }
 
-  int *C_dev, *Cb_dev;//c_dev = Ca (matrizA) e Cb_dev=C (matrizb)
+  int *C_dev, *Cb_dev, *La_dev;//c_dev = Ca (matrizA) e Cb_dev=C (matrizb), La_dev = L (matrixA)
   cudaMalloc((void **) &C_dev, sizeof(int));
   cudaMalloc((void **) &Cb_dev, sizeof(int));
+  cudaMalloc((void **) &La_dev, sizeof(int));
   cudaMemcpy (C_dev, &Ca, sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(Cb_dev, &C, sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(La_dev, &L, sizeof(int), cudaMemcpyHostToDevice);
 
   ///////////////////////////////////////////////////////////////////////////////////////
   // Execução do kernel matMult em GPU
   printf("Multiplicacao CUDA\n");
   double tempo_c = wtime();
-  matMult<<< dimBlock, dimThreads>>>(dev_a, dev_b, dev_c, C_dev, Cb_dev);
+  matMult<<< dimBlock, dimThreads>>>(dev_a, dev_b, dev_c, C_dev, Cb_dev, La_dev);
 
   cudaDeviceSynchronize();
 

@@ -7,7 +7,8 @@ Obs: sempre deve copiar para a maquina física para utilizar (a menos que vc ten
 - O problema das multiplicacoes esta em que: um bloco possui 1024 threads
 Logo 30x30 =900 (ocupa 900 threads)
 Portanto, utilizando mais blocos, muda o modo de multiplicacao.
-- [ ] Arrumar a multiplicacao com mais de um bloco
+- [x] Arrumar a multiplicacao com mais de um bloco
+- [ ] NAo funciona quando a primeira matriz tem mais linhas q colunas + Para os outros casos (testados) funciona
 
 # Colaboradores:
 - Lucas Cobucci

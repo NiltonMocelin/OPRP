@@ -365,9 +365,10 @@ int main(int argc, char const *argv[]) {
 
   printf("Comparando as matrizes:\n");
   mcomparar(mult_sequencial, c, C);
+  printf("\nBlocos(%d,%d) threads(%d,%d)\n", dimBlock.x, dimBlock.y, dimThreads.x, dimThreads.y);
   printf("Tempo de execucao sequencial: %.3f\n", tempo_s);
   printf("Tempo de execucao CUDA: %.3f\n", tempo_c);
-
+  printf("SpeedUp sequencial/GPU: %.3f\n", tempo_s/tempo_c);
   // Libera a Memória Global (GPU)
   cudaFree(dev_a);
   cudaFree(dev_b);

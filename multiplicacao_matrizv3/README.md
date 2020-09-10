@@ -6,7 +6,7 @@
 - [x] Entender como utilizar os blocos e threads
 - [x] Entender como utilizar os indices (pois as matrizes não são quadradas)
 - [x] Corrigir: Multiplicacao ocorre, mas não soma na celula (problema de concorrencia)
-- [X] Implementar multiplicacao serial
-- [X] Marcar tempo e comparar com a versao serial
+- [X] Implementar multiplicacao sequencial
+- [X] Marcar tempo e comparar com a versao sequencial
 - [x] Melhorar: Na funciona para matrizes grandes - provavelmente precise entender melhor a questao dos blocos e threads da GPU
-- [ ] Fazer testes: multiplicar varias matrizes para encontrar erros
+- [X] Adicionado SpeedUp

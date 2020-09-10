@@ -1,3 +1,12 @@
+# CUDA version:
+nvcc: NVIDIA (R) Cuda compiler driver
+
+Copyright (c) 2005-2015 NVIDIA Corporation
+
+Built on Tue_Aug_11_14:27:32_CDT_2015
+
+Cuda compilation tools, release 7.5, V7.5.17
+
 
 # GPU utilizada:
 

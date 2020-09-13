@@ -32,7 +32,8 @@ int main( int argc, char *argv[]){
   makeBoard(board, m, n); //colocando em cada celula o valor "_"
 
 
-  kkn(k, 0, 0, board, m, n);
+  // kkn(k, 0, 0, board, m, n);
+  kkn_iterativo(k, board ,m , n);
 
   return 0;
 }

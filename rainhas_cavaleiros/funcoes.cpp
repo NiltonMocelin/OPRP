@@ -56,6 +56,103 @@ void kkn(int k, int sti, int stj, char** board, int m, int n){
   }
 }
 
+//fazer iterativo e nao recursivo
+void kkn_iterativo(int k, char** board, int m, int n){
+/* ideia:
+- o nosso codigo posiciona os cavaleiros onde conseguir, ok
+- mas a quantidade de rainhas colocadas pode ser maximizado (ou nao, ainda nao tenho certeza)
+
+Para posicionar as rainhas e cavaleiros o professor criava uma matriz auxiliar
+Podemos criar uma matriz auxiliar para posicionar as rainhas.
+Criamos um contador de rainhas e um contador maximo de rainhas.
+A matriz board, armazena apenas a matriz que contem o numero maximo de rainhas.
+Cada vez que uma solucao consegue posicionar mais que o maximo, substituimos a board pela auxiliar
+
+Acredito que isso deva ser implementado para cavaleiros e para rainhas. De alguma forma, a cada iteracao, o cavaleiro_0 que era posicionado em [0][0]
+deve ser posicionado em [0][1], da mesma forma as rainhas.
+
+(pensar sobre isso)
+*/
+int contadorCavaleiros=0, contadorRainhas=0;
+
+//Posicionar os k cavaleiros primeiro
+  for (int i=0; i<k; i++){
+
+    for(int ii=0; ii<m; ii++){
+
+      for(int jj=0; jj<n; jj++){
+
+          if(canPlace(ii, jj, board)){
+            contadorCavaleiros++;
+            //vai colocar o cavalo no tabuleiro e marcar todas as posicoes posicoes de ataque do cavalo no tabuleiro
+            place(ii, jj, 'K', 'A', board, board, m, n);
+          }
+
+          if(contadorCavaleiros == k){//para sair de todos os for
+            break;
+          }
+      }
+
+      if(contadorCavaleiros == k){//para sair de todos os for
+        break;
+      }
+    }
+    if(contadorCavaleiros == k){//para sair de todos os for
+      break;
+    }
+    }
+
+int posicionarOutra=0;//rainha
+
+  //posicionar as rainhas
+  for(int i=0;i<m*n;i++){
+
+    for(int ii=0; ii<m; ii++){
+
+      for(int jj=0; jj<n; jj++){
+
+          if(canPlace(ii, jj, board)){
+            //vai colocar o cavalo no tabuleiro e marcar todas as posicoes posicoes de ataque do cavalo no tabuleiro
+            if (place(ii, jj, 'Q', 'a', board, board, m, n)){
+              board[ii][jj] = '*';
+            }else {
+              contadorRainhas++;
+              board[ii][jj] = 'Q';
+              posicionarOutra=1;//como nao temos controle, a cada vez que posicionarmos uma rainha setamos esta variavel para sair dos dois for
+              break;//fim for interno - colunas da matriz
+            }
+          }
+
+      }
+
+        if(posicionarOutra==1){
+          break;//fim do for das linhas da matriz
+        }
+      }
+
+      //se saiu do for e nao eh para posicionar outra rainha => significa que percorreu toda a matriz e nao conseguiu posicionar
+      if(posicionarOutra==1){
+        posicionarOutra=0;
+      }else{
+        break;
+      }
+
+  }
+
+    /* Se ao final de uma iteração nao conseguimos encontrar uma solucao
+    deletar o tabuleiro e fazer novamente novo tabuleiro */
+    // for (int x = 0; x < m; x++) {
+    //   delete[] new_board[x];
+    // }
+    // delete[] new_board;
+
+    printf("Qtd cavaleiros: %d\n", contadorCavaleiros);
+    printf("Qtd rainhas : %d\n", contadorRainhas);
+    displayBoardCoordenatesMatrix(board, m, n); //mostar o tabuleiro
+    displayResult(board, m, n); // mostrar o resultado
+
+}
+
 //verifica se a posicao ij do tabuleiro esta vago
 bool canPlace(int i, int j, char** board){
   if (board[i][j] == '_')
@@ -91,7 +188,7 @@ int place(int i, int j, char k, char a, char** board, char** new_board, int m, i
 
 /*
 vai marcar todas as posiveis posicoes de ataque do cavalo no linha_tabuleiro
-lembrar que o cavalo sempre se movimenta em L (1 na vertical e 2 na horizontal) ou (2 na horizontal e 1 na vertical)
+lembrar que o cavalo sempre se movimenta em L (2 na vertical e 1 na horizontal) ou (2 na horizontal e 1 na vertical)
 */
 void attack(int i, int j, char a, char** board, int m, int n){
 
@@ -140,7 +237,6 @@ void queens (int qui, int quj, char ** board, int m, int n) {
           }
 
           //coloco a rainha no tabuleiro e calculo suas posicoes de ataque
-          //nao entendi essa parte
           if (place(i, j, 'Q', 'a', board, new_board, m, n)){
             board[i][j] = '*';
             queens(i, j, board, m, j);

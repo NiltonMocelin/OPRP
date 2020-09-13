@@ -11,6 +11,8 @@ void attack(int i, int j, char a, char** board, int m, int n);
 void queens (int qui, int quj, char ** board, int m, int n);
 int attackqueens(int oi, int oj, char a, char** board, int m, int n);
 
+void kkn_iterativo(int k, char** board, int m, int n);
+
 void makeBoard(char** board, int m, int n);
 void displayBoard(char** board, int m, int n);
 void displayBoardCoordenatesMatrix(char** board, int m, int n);

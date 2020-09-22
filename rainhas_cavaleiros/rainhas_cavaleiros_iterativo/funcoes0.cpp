@@ -1,15 +1,35 @@
+#include "funcoes.h"
 
-// C++ implementation of the above approach
-#include <iostream>
-using namespace std;
+/* This function displays our board */
+void displayBoardCoordenatesMatrix(char** board, int m, int n){
+	cout << endl;
+	for (int i = 0; i < m; i++) {
+		for (int j = 0; j < n; j++) {
+			if ((board[i][j] != 'K') && (board[i][j] != 'Q')) {
+				cout << "\t" << (i*m)+(j+1) << ";" ;
+			} else {
+				cout << "\t" << board[i][j] << ";" ;
+			}
+		}
+		cout << endl;
+	}
+	cout << endl;
+}
 
-/* m*n is the board dimension
-k is the number of knights to be placed on board
-count is the number of possible solutions */
-int m, n, k;
-int count = 0;
-int attackqueens(int oi, int oj, char a, char** board, int m, int n);
-void attack(int i, int j, char a,char** board);
+/* This function displays our board */
+void displayResult(char** board, int m, int n){
+	for (int i = 0; i < m; i++) {
+		for (int j = 0; j < n; j++) {
+			if (board[i][j] == 'K') {
+				cout << "K" << (i*m)+(j+1) << ";" ;
+			}
+			if (board[i][j] == 'Q') {
+				cout << "Q" << (i*m)+(j+1) << ";" ;
+			}
+		}
+	}
+	cout << endl;
+}
 
 /* If the position is empty,
    place the knight */
@@ -22,7 +42,7 @@ bool canPlace(int i, int j, char** board)
 }
 
 /* This function is used to create an empty m*n board */
-void makeBoard(char** board)
+void makeBoard(char** board, int m, int n)
 {
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
@@ -47,7 +67,7 @@ void makeBoard(char** board)
 
        /* marca todas as possiveis posicoes que podem ser atacaads pelo novo cavaleiro adicionado no novo tabuleiro*/
        if (k == 'K') { //se a variavel k, passada como parametro for igual a 'K', ou seja, eh um cavaleiro
-         attack(i, j, a, new_board); //marcar todas as posicoes que podem ser atacadas pelo cavaleiro no novo tabuleiro
+         attack(i, j, a, new_board, m, n); //marcar todas as posicoes que podem ser atacadas pelo cavaleiro no novo tabuleiro
        }
        else { //se a variavel k == rainha, entao
          return(attackqueens(i, j, a, new_board, m, n));
@@ -189,7 +209,7 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n){
 
 
 /* This function displays our board */
-void displayBoard(char** board)
+void displayBoard(char** board, int m, int n)
 {
     cout << endl
          << endl;
@@ -204,8 +224,7 @@ void displayBoard(char** board)
 /* This function marks all the attacking
  position of a knight placed at board[i][j]
  position */
-void attack(int i, int j, char a,
-            char** board)
+void attack(int i, int j, char a, char** board, int m, int n)
 {
 
     /* conditions to ensure that the
@@ -276,85 +295,23 @@ void queens (int qui, int quj, char ** board, int m, int n) {
 
 /* Function for placing knights on board
    such that they don't attack each other */
-void kkn(int k, int sti, int stj, char** board)
+void kkn(int k, int sti, int stj, char** board, int m, int n)
 {
 
-    /* If there are no knights left to be placed,
-     display the board and increment the count */
-    if (k == 0) {
-        //ao inves de mostrar o tabuleiro, chamar a funcao de posicionar as rainhas
-        //se nao for possivel posicionar as N-K rainhas, sair e nao printar o resultado
-        //se posicionou as N-k rainhas, mostrar a matriz e finalizar o programa
-        queens (0, 0, board, m, n);
-        displayBoard(board);
+	sti=stj=0;
 
-        exit(0);
-        // queremos apenas uma solucao
-        // count++;
-    }
-    else {
+		for(int i = sti; i< m ;i++){
 
-        /* Loop for checking all the
-       positions on m*n board */
-        for (int i = sti; i < m; i++) {
-            for (int j = stj; j < n; j++) {
-
-                /* Is it possible to place knight at
-           [i][j] position on board? */
-                if (canPlace(i, j, board)) {
-
-                    /* Create a a new board and place the
-                      new knight on it */
-                    char** new_board = new char*[m];
-                    for (int x = 0; x < m; x++) {
-                        new_board[x] = new char[n];
-                    }
-                    place(i, j, 'K', 'A', board, new_board,m,n);
-
-                    /* Call the function recursively for
-                      (k-1) leftover knights */
-                    kkn(k - 1, i, j, new_board);
-
-                    /* Delete the new board
-                    to free up the memory */
-                    for (int x = 0; x < m; x++) {
-                        delete[] new_board[x];
-                    }
-                    delete[] new_board;
-                }
-            }
-            stj = 0;
-        }
-    }
-}
+			for(int j= stj; j<m; j++){
 
 
+			}
 
-// Driver code
-int main(int argc, char *argv[])
-{
-    m = 0, n = 0, k = 0;
-    if(argc!=3){
+		}
 
-printf("Erro: escreva <dimensao> <qtdCavaleiros>\n");
-exit(1);
-}
-   m=n=atoi(argv[1]);
-   k=atoi(argv[2]);
+		for(int x=0; x< m; x++){
+			delete[] new_board[x];
+		}
+		delete[] new_board;
 
-    /* Creation of a m*n board */
-    char** board = new char*[m];
-    for (int i = 0; i < m; i++) {
-        board[i] = new char[n];
-    }
-
-    /* Make all the places are empty */
-    makeBoard(board);
-
-    kkn(k, 0, 0, board);
-
-    cout << endl
-         << "Total number of solutions : "
-         << count;
-    return 0;
 }

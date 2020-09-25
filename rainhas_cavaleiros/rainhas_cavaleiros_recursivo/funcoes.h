@@ -1,6 +1,12 @@
 #include <iostream>
+#include <time.h>
+#include <sys/time.h>
 
 using namespace std;
+
+inline double time_i;
+
+double wtime();
 
 int attackqueens(int oi, int oj, char a, char** board, int m, int n);
 void attack(int i, int j, char a,char** board, int m, int n);

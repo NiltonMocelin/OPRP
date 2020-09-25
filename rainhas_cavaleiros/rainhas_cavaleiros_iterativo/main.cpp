@@ -28,7 +28,8 @@ exit(1);
     /* Make all the places are empty */
     makeBoard(board, m, n);
 
-    kkn(k, 0, 0, board, m, n);
+    time_i=wtime();
+    kkn(k, board, m, n);
 
     return 0;
 }

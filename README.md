@@ -9,10 +9,11 @@ Obs: Para usar CUDA sempre deve copiar para a maquina física para utilizar (a m
 Posicionar K cavaleiros e então posicionar o maximo de rainhas que for possivel.
 
 Atualmente:
-- Versão recursiva do prof
-- Versão recursiva copiada do github de alguém, que é muito proximo da do prof
+- Versão recursiva
+- Versão iterativa (sem recursao)
 
-[ ] Remover a recursão das funções
+[X] Remover a recursão das funções
+
 [ ] Paralelizar
 
 # Versao atual multiplicação de matrizes CUDA v3:

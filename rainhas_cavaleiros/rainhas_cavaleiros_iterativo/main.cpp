@@ -26,15 +26,11 @@ exit(1);
     }
     makeBoard(board, m, n);
 
-    printf("\nqueens\n");
-    time_i=wtime();
-    queens(board, m, n);
-
-    printf("\nkkn_otimizado\n" );
+    printf("\nkkn_otimizado -- posiciona cavaleiros apenas\n" );
     time_i=wtime();
     kkn_otimizado(k, board, m, n);
 
-    printf("\nkkn\n" );
+    printf("\nkkn (cavaleiros+rainhas)\n" );
     time_i=wtime();
     kkn(k, board, m, n);
 

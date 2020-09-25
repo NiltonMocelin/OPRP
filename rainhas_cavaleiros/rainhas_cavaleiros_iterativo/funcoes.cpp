@@ -74,6 +74,9 @@ else { //se a variavel k == rainha, entao
   if(attackqueens(i, j, a, board, m, n)){
     board[i][j] = k;
     return 1;
+  }else{//nao deu para posicionar, mas marcamos seus ataques em algumas posicoes :O => (1) remover os ataques feitos, (2) remarcar os ataques das outras pecas
+    attackqueens(i, j, '_', board, m, n);//remover ataques marcados
+    remarcar_ataque_pecas(board, m, n);
   }
 }
 return (0);
@@ -102,12 +105,9 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
     i = oi;
     j = oj;
     while (i > 0) {
-      if (board[i-1][j] == 'Q') {
+      if (board[i-1][j] == 'Q' || board[i-1][j] == 'K') {
         return(0);
-      }
-      if (board[i-1][j] == 'K') {
-        return(0);
-      } else {
+      }else {
         board[i-1][j] = a;
       }
       i--;
@@ -116,12 +116,9 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
     i = oi;
     j = oj;
     while ((i > 0) && (j < n)) {
-      if (board[i-1][j+1] == 'Q') {
+      if (board[i-1][j+1] == 'Q' || board[i-1][j+1] == 'K') {
         return(0);
-      }
-      if (board[i-1][j+1] == 'K') {
-        return(0);
-      } else {
+      }else {
         board[i-1][j+1] = a;
       }
       i--;
@@ -131,10 +128,7 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
     i = oi;
     j = oj;
     while (j > 0) {
-      if (board[i][j-1] == 'Q') {
-        return(0);
-      }
-      if (board[i][j-1] == 'K') {
+      if (board[i][j-1] == 'Q' || board[i][j-1] == 'K') {
         return(0);
       } else {
         board[i][j-1] = a;
@@ -145,10 +139,7 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
     i = oi;
     j = oj;
     while (j+1 < n) {
-      if (board[i][j+1] == 'Q') {
-        return(0);
-      }
-      if (board[i][j+1] == 'K') {
+      if (board[i][j+1] == 'Q' || board[i][j+1] == 'K') {
         return(0);
       } else {
         board[i][j+1] = a;
@@ -159,12 +150,9 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
     i = oi;
     j = oj;
     while ((i+1 < m) && (j > 0)) {
-      if (board[i+1][j-1] == 'Q') {
+      if (board[i+1][j-1] == 'Q' || board[i+1][j-1] == 'K') {
         return(0);
-      }
-      if (board[i+1][j-1] == 'K') {
-        return(0);
-      } else {
+      }else {
         board[i+1][j-1] = a;
       }
       i++;
@@ -174,10 +162,7 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
     i = oi;
     j = oj;
     while (i+1 < m) {
-      if (board[i+1][j] == 'Q') {
-        return(0);
-      }
-      if (board[i+1][j] == 'K') {
+      if (board[i+1][j] == 'Q' || board[i+1][j] == 'K') {
         return(0);
       } else {
         board[i+1][j] = a;
@@ -188,12 +173,9 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
     i = oi;
     j = oj;
     while ((i+1 < m) && (j+1 < n)) {
-      if (board[i+1][j+1] == 'Q') {
+      if (board[i+1][j+1] == 'Q'||board[i+1][j+1] == 'K') {
         return(0);
-      }
-      if (board[i+1][j+1] == 'K') {
-        return(0);
-      } else {
+      }else {
         board[i+1][j+1] = a;
       }
       i++;
@@ -281,6 +263,7 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
 
   void queens (char ** board, int m, int n) {
 
+    printf("[rainhas] Posicionando as rainhas\n");
     int sti=0, stj=0, melhor_rainhas=0;
 
     char** melhor_tabuleiro = new char*[m];
@@ -295,23 +278,29 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
     }
     makeBoard(new_board, m, n);
 
+    //copiar a board para o novo tabuleiro, com as informacoes dos cavaleiros
+    for(int i=0; i<m; i++){
+      for(int j=0; j<n; j++){
+        new_board[i][j] = board[i][j];
+      }
+    }
 
     int rainhas_atual=0;
 
     while(sti < n && stj < n && rainhas_atual < m){
-      printf("sti:%d; stj:%d\n",sti,stj );
+      // printf("sti:%d; stj:%d\n",sti,stj );
       //[parada] fim da matriz ou rainhas = m
       for (int i = sti; i < m && rainhas_atual < m; i++) {
         for (int j = stj; j < n && rainhas_atual < m; j++) {
 
-          printf("i:%d; j:%d\n",i,j );
+          // printf("i:%d; j:%d \n",i,j );
           //tentar posicionar a rainha
           if(tentar_posicionar_peca(i, j, new_board, m, n, 'Q')){
 
             //conseguiu, a matriz tem um cavaleiro a mais
             rainhas_atual++;//precisa posicionar um cavaleiro a menos
-            printf("Q:%d\n",rainhas_atual );
-            displayBoard(new_board, m, n);
+            // printf("Q:%d\n",rainhas_atual );
+            // displayBoard(new_board, m, n);
             // exit(0);
           }
 
@@ -337,7 +326,9 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
 
         //remover_ultimo_cavaleiro retorna a posicao em j do cavaleiro removido
         int novo_j=0, novo_i=0;
-        remover_ultima_peca(&novo_i, &novo_j, new_board, m, n, 'Q');
+        if(!remover_ultima_peca(&novo_i, &novo_j, new_board, m, n, 'Q')){
+          break;
+        }
         rainhas_atual--;//removi o ultimo%d\n",k );
             // exit(0);
         //na proxima iteracao, comecar a posicionar pela celula seguinte de onde o cavaleiro foi removido
@@ -366,6 +357,7 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
         }else{      //se estou posicionando o primeiro cavaleiro na ultima celula mas ainda teria de posicionar mais, entao nao ha solucao
           break;
         }
+
         }
 
       }
@@ -375,19 +367,26 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
     //se saiu e k==0 -> printar a matriz
     if(melhor_rainhas>0){
 
-      printf("-------------------------------------------------------\n");
+      // printf("-------------------------------------------------------\n");
+      //
+      // displayBoardCoordenatesMatrix(melhor_tabuleiro, m, n);
+      // displayResult(melhor_tabuleiro, m, n);
 
-      displayBoardCoordenatesMatrix(melhor_tabuleiro, m, n);
-      displayResult(melhor_tabuleiro, m, n);
-
-      printf("Solucao Encontrada - %d rainhas posicionadas: tempo %.3f\n",melhor_rainhas, wtime()-time_i );
+      printf("[Rainhas] Solucao Encontrada - %d rainhas posicionadas: tempo %.3f\n",melhor_rainhas, wtime()-time_i );
 
     }else{
-      printf("Solucao Nao Encontrada: tempo %.3f\n",wtime()-time_i );
+      printf("[Rainhas] Solucao Nao Encontrada - 0 rainhas posicionadas: tempo %.3f\n",wtime()-time_i );
 
     }
-    printf("melhor_rainhas:%d; sti:%d; stj:%d\n",melhor_rainhas, sti, stj );
 
+    //copiar o melhor_tabuleiro para o board
+    for(int i=0; i<m; i++){
+      for(int j=0; j<n; j++){
+        if(board[i][j] != 'K' && board[i][j] != 'Q' && board[i][j] != 'A'){//nao substituir as informacoes que ja estao na board
+          board[i][j]= melhor_tabuleiro[i][j];
+        }
+      }
+    }
 
   }
 
@@ -454,7 +453,7 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
 
     if(ceil(m*n / 2.0) < k){
 
-      printf("Solucao nao encontrada\n");
+      printf("[Cavaleiros] Solucao nao encontrada\n");
       return;
     }
 
@@ -472,10 +471,7 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
 
     displayBoardCoordenatesMatrix(board, m, n);
     displayResult(board, m, n);
-    printf("Solucao Encontrada - %d cavaleiros posicionados: tempo %.3f\n",qtd_cavaleiros, wtime()-time_i );
-
-
-
+    printf("[Cavaleiros] Solucao Encontrada - %d cavaleiros posicionados: tempo %.3f\n",qtd_cavaleiros, wtime()-time_i );
 
   }
 
@@ -483,6 +479,7 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
   such that they don't attack each other */
   void kkn(int k, char** board, int m, int n)
   {
+      printf("[cavaleiros] Posicionando os cavaleiros\n");
       int sti=0, stj=0, qtd_cavaleiros=k;
 
       char** new_board = new char*[m];
@@ -519,7 +516,10 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
 
           //remover_ultimo_cavaleiro retorna a posicao em j do cavaleiro removido
           int novo_j=0, novo_i=0;
-          remover_ultima_peca(&novo_i, &novo_j, new_board, m, n, 'K');
+          if(!remover_ultima_peca(&novo_i, &novo_j, new_board, m, n, 'K')){
+            break;//nao tem o que remover entao - >fim
+          }
+
           k++;//removi o ultimo%d\n",k );
               // exit(0);
           //na proxima iteracao, comecar a posicionar pela celula seguinte de onde o cavaleiro foi removido
@@ -548,6 +548,7 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
           }else{      //se estou posicionando o primeiro cavaleiro na ultima celula mas ainda teria de posicionar mais, entao nao ha solucao
             break;
           }
+
           }
 
         }
@@ -557,17 +558,20 @@ int attackqueens(int oi, int oj, char a, char** board, int m, int n)
       //se saiu e k==0 -> printar a matriz
       if(k<=0){
 
+        displayBoard(new_board, m, n);
+
+        //posicionamos com os cavaleiros, agora posicionamos as rainhas
+        queens(new_board, m, n);
+
         printf("-------------------------------------------------------\n");
 
         displayBoardCoordenatesMatrix(new_board, m, n);
         displayResult(new_board, m, n);
-
-        printf("Solucao Encontrada - %d cavaleiros posicionados: tempo %.3f\n",qtd_cavaleiros, wtime()-time_i );
+        printf("[Cavaleiros] Solucao Encontrada - %d cavaleiros posicionados: tempo %.3f\n",qtd_cavaleiros, wtime()-time_i );
 
       }else{
-        printf("Solucao Nao Encontrada: tempo %.3f\n",wtime()-time_i );
+        printf("[Cavaleiros] Solucao Nao Encontrada: tempo %.3f\n",wtime()-time_i );
 
       }
-      printf("K:%d; sti:%d; stj:%d\n",k, sti, stj );
 
   }

@@ -4,13 +4,13 @@
 
 Objetivos:
 
-[x] Deixar iterativo [cavaleiros] (sem recursao) -> rainhas_cavaleiros_iterativo/
+[X] Deixar iterativo [cavaleiros] (sem recursao) -> rainhas_cavaleiros_iterativo/
 
-[x] Deixar iterativo [rainhas] (sem recursao) -> rainhas_cavaleiros_iterativo/
+[X] Deixar iterativo [rainhas] (sem recursao) -> rainhas_cavaleiros_iterativo/
 
-[x] Criar versão otimizada problema dos cavaleiros
+[X] Criar versão otimizada problema dos cavaleiros
 
-[ ] Juntar os algoritmos cavaleiro+rainhas
+[X] Juntar os algoritmos cavaleiro+rainhas
 
 [ ] Paralelizar
 

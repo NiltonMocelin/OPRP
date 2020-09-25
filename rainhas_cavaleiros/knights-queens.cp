@@ -355,7 +355,7 @@ void attack(int i, int j, char a,
 					for (int i = sti; i < m; i++) {
 						for (int j = stj; j < n; j++) {
 
-							printf("i:%d, j:%d\n",i,j);
+							// printf("i:%d, j:%d\n",i,j);
 							/* Is it possible to place knight at [i][j] position on board? */
 							if (canPlace(i, j, board)) {
 
@@ -379,7 +379,7 @@ void attack(int i, int j, char a,
 						}
 						stj = 0;
 					}
-					printf("Nao deu\n");
+					// printf("Nao deu\n");
 				}
 			}
 

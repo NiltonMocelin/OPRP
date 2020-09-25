@@ -5,7 +5,13 @@
 Objetivos:
 
 [x] Deixar iterativo [cavaleiros] (sem recursao) -> rainhas_cavaleiros_iterativo/
-[ ] Deixar iterativo [rainhas] (sem recursao):
+
+[x] Deixar iterativo [rainhas] (sem recursao) -> rainhas_cavaleiros_iterativo/
+
+[x] Criar versão otimizada problema dos cavaleiros
+
+[ ] Juntar os algoritmos cavaleiro+rainhas
+
 [ ] Paralelizar
 
-- Existe a possibilidade de a cada recursão, gerar uma thread. (não pensei sobre). 
+ 

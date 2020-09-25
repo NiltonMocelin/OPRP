@@ -24,10 +24,17 @@ exit(1);
     for (int i = 0; i < m; i++) {
         board[i] = new char[n];
     }
-
-    /* Make all the places are empty */
     makeBoard(board, m, n);
 
+    printf("\nqueens\n");
+    time_i=wtime();
+    queens(board, m, n);
+
+    printf("\nkkn_otimizado\n" );
+    time_i=wtime();
+    kkn_otimizado(k, board, m, n);
+
+    printf("\nkkn\n" );
     time_i=wtime();
     kkn(k, board, m, n);
 

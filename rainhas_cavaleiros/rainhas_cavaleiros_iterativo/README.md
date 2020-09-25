@@ -11,3 +11,12 @@
 # Algoritmo posicionar Rainhas:
 
 - Usaremos a mesma estratégia, pois o que muda são as funções e não a lógica.
+
+- Como não sabemos quantas rainhas é possivel colocar, mas o maximo é o max_rainhas = min(n,m).
+
+- Temos um contador de rainhas e um contador maximo. Bem como, salvamos o tabuleiro com o numero maximo de rainhas.
+
+- Cada vez que a matriz é percorrida, verificamos se o numero de rainhas atual é maior que o maximo. Se sim, substituimos o maximo e o tabuleiro pelos atuais.
+
+- O algoritmo para quando tento posicionar a primeira peça na ultima posicao da matriz, pq nesse caso, ja tentamos todas as possibilidades e não conseguiremos posicionar mais que 1 ou 0 rainhas.
+ 
